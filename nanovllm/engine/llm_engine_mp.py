@@ -80,7 +80,7 @@ class LLMEngineMP:
 
     def __init__(self, model: str, **kwargs):
         cfg_fields = {f.name for f in fields(Config)}
-        cfg_kwargs = {k: v for k, v in kwargs.items() if k in cfg_fields}
+        cfg_kwargs: dict[str, Unknown] = {k: v for k, v in kwargs.items() if k in cfg_fields}
         self.config = Config(model, **cfg_kwargs)
 
         self.tokenizer = AutoTokenizer.from_pretrained(self.config.model, use_fast=True)

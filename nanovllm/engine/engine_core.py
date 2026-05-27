@@ -12,11 +12,8 @@ import torch.multiprocessing as mp
 import zmq
 from nanovllm.config import Config
 from nanovllm.engine.ipc import (
-    AbortRequest,
-    AddRequest,
     ByeOutput,
     DoneOutput,
-    ExitRequest,
     IPCEndpoints,
     MsgType,
     StatOutput,
@@ -113,6 +110,11 @@ class EngineCore:
     def _step_once(self) -> None:
         t0 = perf_counter()
         seqs, is_prefill = self.scheduler.schedule()
+        print(
+            f"[engine] step is_prefill={is_prefill} batch={len(seqs)} "
+            f"tok={[s.num_scheduled_tokens for s in seqs]}",
+            flush=True,
+        )
         num_tokens = (
             sum(s.num_scheduled_tokens for s in seqs) if is_prefill else -len(seqs)
         )
@@ -131,10 +133,10 @@ class EngineCore:
                     DoneOutput(rid=rid, token_ids=s.completion_token_ids)
                 )
 
-        if num_tokens > 0:
-            self.out_chan.send(StatOutput(prefill_tps=num_tokens / dt, decode_tps=0.0))
-        elif num_tokens < 0:
-            self.out_chan.send(StatOutput(prefill_tps=0.0, decode_tps=-num_tokens / dt))
+        # if num_tokens > 0:
+        #     self.out_chan.send(StatOutput(prefill_tps=num_tokens / dt, decode_tps=0.0))
+        # elif num_tokens < 0:
+        #     self.out_chan.send(StatOutput(prefill_tps=0.0, decode_tps=-num_tokens / dt))
 
     # ─────────────────────────────── loop ───────────────────────────────
     def serve_forever(self) -> None:

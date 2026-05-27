@@ -1,14 +1,14 @@
 import os
 from time import time
 
-from nanovllm import LLM, SamplingParams
+from nanovllm import LLM_MP, SamplingParams
 from transformers import AutoTokenizer
 
 
 def main():
     path = os.path.expanduser("~/huggingface/Qwen3-0.6B/")
     tokenizer = AutoTokenizer.from_pretrained(path)
-    llm = LLM(path, enforce_eager=True, tensor_parallel_size=1)
+    llm = LLM_MP(path, enforce_eager=True, tensor_parallel_size=1)
 
     sampling_params = SamplingParams(temperature=0.6, max_tokens=50, ignore_eos=True)
     prompts = [
@@ -25,7 +25,7 @@ def main():
     ]
     start = time()
     outputs = llm.generate(prompts, sampling_params)
-    elapsed: float = time() - start
+    elapsed = time() - start
 
     total_tokens = sum(len(output["token_ids"]) for output in outputs)
 

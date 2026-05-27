@@ -48,6 +48,11 @@ class LLMEngine:
 
     def step(self):
         seqs, is_prefill = self.scheduler.schedule()
+        print(
+            f"[v0] step is_prefill={is_prefill} batch={len(seqs)} "
+            f"tok={[s.num_scheduled_tokens for s in seqs]}",
+            flush=True,
+        )
         num_tokens = sum(seq.num_scheduled_tokens for seq in seqs) if is_prefill else -len(seqs)
         token_ids = self.model_runner.call("run", seqs, is_prefill)
         self.scheduler.postprocess(seqs, token_ids, is_prefill)
