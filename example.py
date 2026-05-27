@@ -1,4 +1,6 @@
 import os
+from time import time
+
 from nanovllm import LLM, SamplingParams
 from transformers import AutoTokenizer
 
@@ -21,12 +23,21 @@ def main():
         )
         for prompt in prompts
     ]
+    start = time()
     outputs = llm.generate(prompts, sampling_params)
+    elapsed = time() - start
+
+    total_tokens = sum(len(output["token_ids"]) for output in outputs)
 
     for prompt, output in zip(prompts, outputs):
         print("\n")
         print(f"Prompt: {prompt!r}")
         print(f"Completion: {output['text']!r}")
+
+    print("\n")
+    print(f"Generation time: {elapsed:.2f}s")
+    print(f"Total output tokens: {total_tokens}")
+    print(f"Throughput: {total_tokens / elapsed:.2f} tokens/s")
 
 
 if __name__ == "__main__":
