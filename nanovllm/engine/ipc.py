@@ -28,6 +28,7 @@ class MsgType(str, Enum):
     DONE = "DONE"
     STAT = "STAT"
     BYE = "BYE"
+    READY = "READY"
 
 
 @dataclass
@@ -66,6 +67,11 @@ class StatOutput:
 @dataclass
 class ByeOutput:
     op: str = MsgType.BYE
+
+
+@dataclass
+class ReadyOutput:
+    op: str = MsgType.READY
 
 
 # ───────────────────────────── transport classes ─────────────────────────────

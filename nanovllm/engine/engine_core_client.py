@@ -36,6 +36,7 @@ class EngineCoreClient:
     """
 
     SHUTDOWN_TIMEOUT_S = 30.0
+    READY_TIMEOUT_S = 600.0  # generous window for first-time model load + warmup
 
     # ──────────────────────────── construction ───────────────────────────
     def __init__(
@@ -64,6 +65,18 @@ class EngineCoreClient:
         self._out_chan = ZmqChannel(self.endpoints.out_addr, zmq.PULL, bind=False)
 
         self._closed = False
+
+        # 3) Block until the engine signals it has finished loading the model
+        #    and is ready to accept ADD requests. Keeps generate() timing fair.
+        ready = self._out_chan.recv(timeout_ms=int(self.READY_TIMEOUT_S * 1000))
+        if ready is None:
+            raise RuntimeError(
+                f"Engine did not signal READY within {self.READY_TIMEOUT_S}s"
+            )
+        if ready.op != MsgType.READY:
+            raise RuntimeError(
+                f"Expected READY as first engine message, got {ready.op}"
+            )
 
     # ─────────────────────────────── send ──────────────────────────────
     def add_request(self, rid: int, token_ids: list[int], sp: SamplingParams) -> None:

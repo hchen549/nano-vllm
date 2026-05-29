@@ -16,6 +16,7 @@ from nanovllm.engine.ipc import (
     DoneOutput,
     IPCEndpoints,
     MsgType,
+    ReadyOutput,
     StatOutput,
     ZmqChannel,
 )
@@ -140,6 +141,9 @@ class EngineCore:
 
     # ─────────────────────────────── loop ───────────────────────────────
     def serve_forever(self) -> None:
+        # Signal to the client that __init__ (model load + warmup) is done
+        # and the engine is ready to receive ADD requests.
+        self.out_chan.send(ReadyOutput())
         try:
             while True:
                 idle = self.scheduler.is_finished()
