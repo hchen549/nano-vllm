@@ -44,7 +44,7 @@ PASSAGE = (
 )
 
 DEFAULT_MODEL_PATH = "~/huggingface/Qwen3-0.6B/"
-DEFAULT_NUM_PROMPTS = 128
+DEFAULT_NUM_PROMPTS = 1280
 DEFAULT_CHUNK_CHARS = 500
 DEFAULT_MAX_TOKENS = 64
 DEFAULT_TEMPERATURE = 0.6
@@ -135,3 +135,13 @@ def run_benchmark(llm: Any, label: str, model_path: str | None = None) -> None:
         f"Combined throughput: "
         f"{(total_input_tokens + total_output_tokens) / elapsed:.2f} tok/s"
     )
+
+    # Phase breakdown — only v0 (LLMEngine) currently exposes this.
+    phases = getattr(llm, "last_phase_times", None)
+    if phases:
+        print("\n--- Phase breakdown ---")
+        total_phase = sum(phases.values())
+        for name, secs in phases.items():
+            pct = 100.0 * secs / total_phase if total_phase else 0.0
+            print(f"  {name:<12s} {secs:7.3f}s ({pct:5.2f}% of generate())")
+        print(f"  {'(sum)':<12s} {total_phase:7.3f}s")
